@@ -25,7 +25,7 @@ static const std::string hmat_csv="D:/GitRepo/hough-transform/media/hmat.csv";
 
 int main() {
   YUtils::Timer<double> sht_timer, dcht_timer;
-  std::ofstream result_f(hmat_csv);
+  // std::ofstream result_f(hmat_csv);
 
   constexpr size_t max_lines = 10;
 
@@ -50,11 +50,19 @@ int main() {
   // }
 
   std::vector<YHoughTransform::HoughLine<double>> lines;
+  sht.Vote();
+  sht.FindPeaks(max_lines, lines);
   sht_timer.Start();
+  // sht.Vote();
+  // sht.FindPeaks(max_lines, lines);
+  // sht.FindLines(lines);
   sht.GetLinesInDegree(max_lines, lines);
   sht_timer.Stop();
   std::vector<YHoughTransform::HoughLine<double>> lines2;
   dcht_timer.Start();
+  // dcht.Vote();
+  // dcht.FindPeaks(max_lines, lines2);
+  // dcht.FindLines(lines2);
   dcht.GetLinesInDegree(max_lines, lines2);
   dcht_timer.Stop();
   double sht_t = sht_timer.Elapsed_ms();

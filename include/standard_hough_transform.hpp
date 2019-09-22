@@ -196,7 +196,7 @@ namespace YHoughTransform {
   template <typename T, size_t PI_DIV>
   void SHT<T, PI_DIV>::FindLines(vector<HoughLine<T>> &lines) const{
     constexpr int shift = 16;
-    for (auto line:lines) {
+    for (auto &line:lines) {
       const T rho = line.rho;
       const T theta = line.theta;
       const T curr_sin = sin(theta);
@@ -248,10 +248,10 @@ namespace YHoughTransform {
                                       pow((T)line_start[1]-(T)line_end[1],2)));
   				if (this_length > last_length) {
             last_length = this_length;
-            line.start_pt.at(0) = (size_t)line_start[0];
-            line.start_pt.at(1) = (size_t)line_start[1];
-            line.end_pt.at(0) = (size_t)line_end[0];
-            line.end_pt.at(1) = (size_t)line_end[1];
+            line.start_pt.at(0) = line_start[0];
+            line.start_pt.at(1) = line_start[1];
+            line.end_pt.at(0) = line_end[0];
+            line.end_pt.at(1) = line_end[1];
   				}
   				break;
   			}
@@ -291,20 +291,20 @@ namespace YHoughTransform {
   					if (this_length > last_length) {
   						last_length = this_length;
   						// coordinate transformation
-              line.start_pt.at(0) = (size_t)line_start[0];
-              line.start_pt.at(1) = (size_t)line_start[1];
-              line.end_pt.at(0) = (size_t)line_end[0];
-              line.end_pt.at(1) = (size_t)line_end[1];
+              line.start_pt.at(0) = line_start[0];
+              line.start_pt.at(1) = line_start[1];
+              line.end_pt.at(0) = line_end[0];
+              line.end_pt.at(1) = line_end[1];
   					}
   				}
   			}
   		}
   		// enhanced the robustness: none line segment are detected
   		if (!last_length) {
-  			line.start_pt.at(0) = (size_t)r_start;
-  			line.start_pt.at(1) = (size_t)c_start;
-  			line.end_pt.at(0) = (size_t)r_start;
-  			line.end_pt.at(1) = (size_t)c_start;
+  			line.start_pt.at(0) = r_start;
+  			line.start_pt.at(1) = c_start;
+  			line.end_pt.at(0) = r_start;
+  			line.end_pt.at(1) = c_start;
   		}
     }
   }
