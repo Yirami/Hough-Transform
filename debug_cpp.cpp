@@ -49,15 +49,6 @@ int main() {
   //   result_f<<std::endl;
   // }
 
-  std::vector<YHoughTransform::HoughLine<double>> lines;
-  sht.Vote();
-  sht.FindPeaks(max_lines, lines);
-  sht_timer.Start();
-  // sht.Vote();
-  // sht.FindPeaks(max_lines, lines);
-  // sht.FindLines(lines);
-  sht.GetLinesInDegree(max_lines, lines);
-  sht_timer.Stop();
   std::vector<YHoughTransform::HoughLine<double>> lines2;
   dcht_timer.Start();
   // dcht.Vote();
@@ -65,6 +56,13 @@ int main() {
   // dcht.FindLines(lines2);
   dcht.GetLinesInDegree(max_lines, lines2);
   dcht_timer.Stop();
+  std::vector<YHoughTransform::HoughLine<double>> lines;
+  sht_timer.Start();
+  // sht.Vote();
+  // sht.FindPeaks(max_lines, lines);
+  // sht.FindLines(lines);
+  sht.GetLinesInDegree(max_lines, lines);
+  sht_timer.Stop();
   double sht_t = sht_timer.Elapsed_ms();
   double dcht_t = dcht_timer.Elapsed_ms();
 }

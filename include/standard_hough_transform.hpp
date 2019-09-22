@@ -198,9 +198,9 @@ namespace YHoughTransform {
     constexpr int shift = 16;
     for (auto &line:lines) {
       const T rho = line.rho;
-      const T theta = line.theta;
-      const T curr_sin = sin(theta);
-      const T curr_cos = cos(theta);
+      const T theta = Rad2Deg_(line.theta);
+      const T curr_sin = sin(line.theta);
+      const T curr_cos = cos(line.theta);
 
       int r_start = 0;
   		int c_start = (int)floor((rho-(T)r_start*curr_sin)/curr_cos);
