@@ -35,8 +35,8 @@ namespace YHoughTransform {
   struct HoughLine {
     T rho;    // 0 is top-left corner
     T theta;  // [-pi/2, pi/2)@[-90, 90) 0 for verticala and negative for left
-    array<size_t, 2> start_pt;  // [column, row]
-    array<size_t, 2> end_pt;
+    array<int, 2> start_pt;  // [column, row]
+    array<int, 2> end_pt;
   };
 
   template <typename T, size_t PI_DIV=180>  // [-pi/2, pi/2)
@@ -47,18 +47,25 @@ namespace YHoughTransform {
     void FeedImage(const unsigned char *img, array<size_t, 2> &size_wh);
     void SetAngleFilter(vector<size_t> filt) {theta_filter_ = filt;};
     void GetLines(size_t max_lines, vector<HoughLine<T>> &lines);
-    void Vote();
+    void GetLinesInDegree(size_t max_lines, vector<HoughLine<T>> &lines);
+    void Vote();  // if debug vote map, Vote() is the only one to be invoked
+    size_t GetThetaDiv() const {return theta_div_;};
+    size_t GetRhoDiv() const {return rho_div_;};
+    const size_t *GetVotePtr() const {return vote_map_;};
     void FindPeaks(size_t max_lines, vector<HoughLine<T>> &lines);
-    void FindLines(vector<HoughLine<T>> &lines);
+    void FindLines(vector<HoughLine<T>> &lines) const;
+  protected:
+    T Rad2Deg_(T radian) const{return 180*radian/PI;};
+    T Deg2Rad_(T degree) const{return PI*degree/180;};
   public:
     constexpr static T PI = 3.14159265358979;
     T NOISE_SCALE = 0.1;  // give up short lines [scale*height]
-    T SUPPRESS_THETA = 2;
+    T SUPPRESS_THETA = 2; // degree
     T SUPPRESS_RHO = 3;
     size_t LINE_GAP = 5;
-  public:
+  protected:
     const unsigned char *img_ = nullptr;
-    array<size_t, 2> img_size_ = {0}; // [columns, rows]
+    array<size_t, 2> img_size_wh_ = {0}; // [columns, rows]
 
     vector<size_t> theta_filter_;
     T theta_res_ = PI/PI_DIV;   // resolution of theta
@@ -66,20 +73,24 @@ namespace YHoughTransform {
     size_t theta_div_ = PI_DIV;
     size_t rho_div_ = 0;
 
-    size_t *vote_map_ = nullptr;
+    size_t *vote_map_ = nullptr;  // FindPeaks() will modify vote map !!!
 
+    static bool tri_map_init_;
     static array<TriMap<T>, PI_DIV> *tri_map_;
   };
 
   template <typename T, size_t PI_DIV>
-  array<TriMap<T>, PI_DIV> * SHT<T, PI_DIV>::tri_map_=YPattern::Singleton<array<TriMap<T>, PI_DIV>>::Get();
+  bool SHT<T, PI_DIV>::tri_map_init_ = false;
+
+  template <typename T, size_t PI_DIV>
+  array<TriMap<T>, PI_DIV> * SHT<T, PI_DIV>::tri_map_ = \
+    YPattern::Singleton<array<TriMap<T>, PI_DIV>>::Get();
 
   template <typename T, size_t PI_DIV>
   SHT<T, PI_DIV>::SHT() {
-    for (size_t i=0; i<PI_DIV-0; i++)
+    for (size_t i=0; i<PI_DIV; i++)
     // for (size_t i=30; i<PI_DIV-30; i++)
       theta_filter_.push_back(i);
-    static bool tri_map_init_ = false;
     if (!tri_map_init_) {
       for (size_t i=0; i<PI_DIV; i++) {
         tri_map_->at(i).angle = theta_res_*i-PI/2;
@@ -91,78 +102,99 @@ namespace YHoughTransform {
   }
 
   template <typename T, size_t PI_DIV>
-  void SHT<T, PI_DIV>::FeedImage(const unsigned char *img, array<size_t, 2> &size_wh) {
+  void SHT<T, PI_DIV>::FeedImage(const unsigned char *img,
+                                 array<size_t, 2> &size_wh) {
     img_ = img;
-    img_size_ = size_wh;
+    img_size_wh_ = size_wh;
     T rho_max = (T)sqrt(pow(size_wh[0]-1,2)+pow(size_wh[1]-1,2));
     rho_div_ = (size_t)floor(rho_max/rho_res_+0.5)*2+1; // rho may be negative
-    if (vote_map_) delete [] vote_map_;
+    if (vote_map_) {delete [] vote_map_; vote_map_ = nullptr;}
     vote_map_ = new size_t[rho_div_*theta_div_];
     std::memset(vote_map_, 0, rho_div_*theta_div_*sizeof(size_t));
   }
 
   template <typename T, size_t PI_DIV>
-  void SHT<T, PI_DIV>::GetLines(size_t max_lines, vector<HoughLine<T>> &lines) {
+  void SHT<T, PI_DIV>::GetLines(size_t max_lines,
+                                vector<HoughLine<T>> &lines) {
     Vote();
     FindPeaks(max_lines, lines);
     FindLines(lines);
   }
 
   template <typename T, size_t PI_DIV>
-  void SHT<T, PI_DIV>::Vote() {
-    double rho_shift = (double)(rho_div_-1)/2;
-    for (size_t c=0; c<img_size_[0]; c++)
-      for (size_t r=0; r<img_size_[1]; r++)
-        if (img_[r*img_size_[0]+c])
-          for (auto th:theta_filter_) {
-            const double rho_c = floor((r*tri_map_->at(th).sin+c*tri_map_->at(th).cos)/rho_res_+0.5);
-            const size_t rho_c_shift = (size_t)(rho_c + rho_shift);
-            vote_map_[PI_DIV*rho_c_shift+th]++;
-          }
+  void SHT<T, PI_DIV>::GetLinesInDegree(size_t max_lines,
+                                        vector<HoughLine<T>> &lines) {
+    Vote();
+    FindPeaks(max_lines, lines);
+    FindLines(lines);
+    for (auto &line:lines)
+      line.theta = Rad2Deg_(line.theta);
   }
 
   template <typename T, size_t PI_DIV>
-  void SHT<T, PI_DIV>::FindPeaks(size_t max_lines, vector<HoughLine<T>> &lines) {
-    array<size_t, 2> suppress = {(size_t)ceil(SUPPRESS_THETA/theta_res_), (size_t)ceil(SUPPRESS_RHO/rho_res_)};
-    lines.clear();
-    for (size_t i=0; i<max_lines; i++) {
-      // search maximum vote
-      size_t max_vote = 0, max_r = 0, max_c = 0;
-      for (auto c:theta_filter_)
-        for (size_t r=0; r<rho_div_; r++)
-          if (vote_map_[r*theta_div_+c]>max_vote) {
-            max_vote = vote_map_[r*theta_div_+c];
-            max_r = r;
-            max_c = c;
+  void SHT<T, PI_DIV>::Vote() {
+    T rho_shift = ((T)rho_div_-1)/2;
+    for (size_t c=0; c<img_size_wh_[0]; c++) {
+      for (size_t r=0; r<img_size_wh_[1]; r++) {
+        if (img_[r*img_size_wh_[0]+c])
+          for (auto th:theta_filter_) {
+            const T rho_c = floor((r*tri_map_->at(th).sin+\
+                                   c*tri_map_->at(th).cos)/rho_res_+0.5);
+            const size_t rho_c_shift = (size_t)(rho_c + rho_shift);
+            vote_map_[PI_DIV*rho_c_shift+th]++;
           }
-      if (max_vote<size_t(img_size_[0]*NOISE_SCALE)) break;
-      HoughLine<T> line = {0};
-      line.rho = rho_res_*(max_r-(rho_div_-1)/2);
-      line.theta = tri_map_->at(max_c).angle;
-      lines.push_back(line);
-      // suppress in vote space
-      size_t start_r = max_r>suppress[1]?(max_r-suppress[1]):0;
-      size_t end_r = max_r+suppress[1]<rho_div_?(max_r+suppress[1]+1):rho_div_;
-      vector<size_t> c_list;
-      c_list.push_back(max_c);
-      for (size_t i=1; i<=suppress[1]; i++) {
-        if (max_c<i)
-          c_list.push_back(theta_div_+max_c-i);
-        else
-          c_list.push_back(max_c-i);
-        if (max_c+i>=theta_div_)
-          c_list.push_back(max_c+i-theta_div_);
-        else
-          c_list.push_back(max_c+i);
       }
-      for (size_t c:c_list)
-        for (size_t r=start_r; r<rho_div_; r++)
-          vote_map_[r*theta_div_+c] = 0;
     }
   }
 
   template <typename T, size_t PI_DIV>
-  void SHT<T, PI_DIV>::FindLines(vector<HoughLine<T>> &lines) {
+  void SHT<T, PI_DIV>::FindPeaks(size_t max_lines,
+                                 vector<HoughLine<T>> &lines) {
+    array<int, 2> suppress = {(int)ceil(Deg2Rad_(SUPPRESS_THETA)/theta_res_),
+                              (int)ceil(SUPPRESS_RHO/rho_res_)};
+    lines.clear();
+    for (size_t i=0; i<max_lines; i++) {
+      // search maximum vote
+      size_t max_vote = 0;
+      int max_r = 0, max_c = 0;
+      for (auto c:theta_filter_) {
+        for (int r=0; r<(int)rho_div_; r++)
+          if (vote_map_[(size_t)r*PI_DIV+c]>max_vote) {
+            max_vote = vote_map_[(size_t)r*PI_DIV+c];
+            max_r = r;
+            max_c = (int)c;
+          }
+      }
+      if (max_vote<size_t(img_size_wh_[0]*NOISE_SCALE)) break;
+      HoughLine<T> line = {0};
+      line.rho = rho_res_*(max_r-((T)rho_div_-1)/2);
+      line.theta = tri_map_->at(max_c).angle;
+      lines.push_back(line);
+      // suppress in vote space
+      const int start_r = max_r>suppress[1]?max_r-suppress[1]:0;
+      const int end_r = max_r+suppress[1]<(int)rho_div_?max_r+suppress[1]+1:\
+                                                       (int)rho_div_;
+      // columns are handled differently because of angle's head-tail closure
+      vector<int> theta_list;
+      theta_list.push_back(max_c);
+      for (int i=1; i<=suppress[0]; i++) {
+        if (max_c<i)
+          theta_list.push_back((int)theta_div_+max_c-i);
+        else
+          theta_list.push_back(max_c-i);
+        if (max_c+i>=(int)theta_div_)
+          theta_list.push_back(max_c+i-(int)theta_div_);
+        else
+          theta_list.push_back(max_c+i);
+      }
+      for (int c:theta_list)
+        for (int r=start_r; r<end_r; r++)
+          vote_map_[r*(int)theta_div_+c] = 0;
+    }
+  }
+
+  template <typename T, size_t PI_DIV>
+  void SHT<T, PI_DIV>::FindLines(vector<HoughLine<T>> &lines) const{
     constexpr int shift = 16;
     for (auto line:lines) {
       const T rho = line.rho;
@@ -170,21 +202,21 @@ namespace YHoughTransform {
       const T curr_sin = sin(theta);
       const T curr_cos = cos(theta);
 
-      int rStart = 0;
-  		int cStart = (int)floor((rho-(T)rStart*curr_sin)/curr_cos);
-  		// determine whether the cStart overflows the boundary
-  		if (cStart<0) {
-  			cStart = 0;
-  			rStart = (int)floor((rho-(T)cStart*curr_cos)/curr_sin);
+      int r_start = 0;
+  		int c_start = (int)floor((rho-(T)r_start*curr_sin)/curr_cos);
+  		// determine whether the c_start overflows the boundary
+  		if (c_start<0) {
+  			c_start = 0;
+  			r_start = (int)floor((rho-(T)c_start*curr_cos)/curr_sin);
   		}
-  		else if (cStart>=(int)img_size_[0]) {
-  			cStart = (int)img_size_[0]-1;
-  			rStart = (int)floor((rho-(T)cStart*curr_cos)/curr_sin);
+  		else if (c_start>=(int)img_size_wh_[0]) {
+  			c_start = (int)img_size_wh_[0]-1;
+  			r_start = (int)floor((rho-(T)c_start*curr_cos)/curr_sin);
   		}
-  		int biasFlag = 0;
-  		int r0 = rStart, c0 = cStart, dr0, dc0;
+  		int bias_flag = 0;
+  		int r0 = r_start, c0 = c_start, dr0, dc0;
   		if (abs(theta)<=45) {
-  			biasFlag = 1;
+  			bias_flag = 1;
   			dr0 = 1;
   			dc0 = (int)floor(fabs(curr_sin)*((int)1 << shift)/curr_cos+0.5);
   			c0 = (c0 << shift)+((int)1 << (shift-1));
@@ -198,10 +230,10 @@ namespace YHoughTransform {
   			dc0 = -dc0;
   		// walk along the line using fixed-point arithmetics,
   		// ... stop at the image border
-  		int lastLength = 0, lineStart[2] = {0}, lineEnd[2] = {0};
-  		for (int gap=0, c=c0, r=r0, startPFlag =1; ; c+=dc0, r+=dr0) {
+  		int last_length = 0, line_start[2] = {0}, line_end[2] = {0};
+  		for (int gap=0, c=c0, r=r0, start_p_flag =1; ; c+=dc0, r+=dr0) {
   			int r1, c1;
-  			if (biasFlag) {
+  			if (bias_flag) {
   				c1 = c >> shift;
   				r1 = r;
   			}
@@ -209,66 +241,70 @@ namespace YHoughTransform {
   				c1 = c;
   				r1 = r >> shift;
   			}
-  			if (c1 < 0||c1 >= (int)img_size_[0]||r1 < 0||r1 >= (int)img_size_[1]) {
-  				// ensure lastLength has been update before  exit
-          int thisLength = (int)floor(sqrt(pow((double)lineStart[0]-(double)lineEnd[0],2) + pow((double)lineStart[1]-(double)lineEnd[1],2)));
-  				if (thisLength > lastLength) {
-            lastLength = thisLength;
-            line.start_pt.at(0) = (size_t)lineStart[0];
-            line.start_pt.at(1) = (size_t)lineStart[1];
-            line.end_pt.at(0) = (size_t)lineEnd[0];
-            line.end_pt.at(1) = (size_t)lineEnd[1];
+  			if (c1<0||c1>=(int)img_size_wh_[0]||r1<0||r1>=(int)img_size_wh_[1]) {
+  				// ensure last_length has been update before  exit
+          int this_length = (int)floor(sqrt(
+                                      pow((T)line_start[0]-(T)line_end[0],2) +
+                                      pow((T)line_start[1]-(T)line_end[1],2)));
+  				if (this_length > last_length) {
+            last_length = this_length;
+            line.start_pt.at(0) = (size_t)line_start[0];
+            line.start_pt.at(1) = (size_t)line_start[1];
+            line.end_pt.at(0) = (size_t)line_end[0];
+            line.end_pt.at(1) = (size_t)line_end[1];
   				}
   				break;
   			}
-  			if (img_[c1*img_size_[1]+r1]) {
+  			if (img_[c1*img_size_wh_[1]+r1]) {
   				gap = 0;
-  				if (startPFlag) {
-  					startPFlag = 0;
-  					lineStart[0] = c1;
-  					lineStart[1] = r1;
-  					lineEnd[0] = c1;
-  					lineEnd[1] = r1;
+  				if (start_p_flag) {
+  					start_p_flag = 0;
+  					line_start[0] = c1;
+  					line_start[1] = r1;
+  					line_end[0] = c1;
+  					line_end[1] = r1;
   				}
   				else {
-  					lineEnd[0] = c1;
-  					lineEnd[1] = r1;
+  					line_end[0] = c1;
+  					line_end[1] = r1;
   				}
   			}
-  			else if (!startPFlag) {
+  			else if (!start_p_flag) {
   				// fuzzy processing the points beside line
-  				int leftPFlag = 0, rightPFlag = 0;
-  				if (c1>0 && img_[(c1-1)*img_size_[1]+r1])
-  					leftPFlag = 1;
-  				if (c1<(int)img_size_[0]-1 && img_[(c1+1)*img_size_[1]+r1])
-  					rightPFlag = 1;
-  				if (leftPFlag || rightPFlag) {
+  				int left_p_flag = 0, right_p_flag = 0;
+  				if (c1>0 && img_[(c1-1)*img_size_wh_[1]+r1])
+  					left_p_flag = 1;
+  				if (c1<(int)img_size_wh_[0]-1 && img_[(c1+1)*img_size_wh_[1]+r1])
+  					right_p_flag = 1;
+  				if (left_p_flag || right_p_flag) {
   					gap = 0;
-            lineEnd[0] = c1;
-  					lineEnd[1] = r1;
+            line_end[0] = c1;
+  					line_end[1] = r1;
   					continue;
   				}
   				// end of line segment
   				if (++gap > (int)LINE_GAP) {
-  					startPFlag = 1;
-  					int thisLength = (int)floor(sqrt(pow((double)lineStart[0]-(double)lineEnd[0],2) + pow((double)lineStart[1]-(double)lineEnd[1],2)));
-  					if (thisLength > lastLength) {
-  						lastLength = thisLength;
+  					start_p_flag = 1;
+  					int this_length = (int)floor(sqrt(
+                                      pow((T)line_start[0]-(T)line_end[0],2) +
+                                      pow((T)line_start[1]-(T)line_end[1],2)));
+  					if (this_length > last_length) {
+  						last_length = this_length;
   						// coordinate transformation
-              line.start_pt.at(0) = (size_t)lineStart[0];
-              line.start_pt.at(1) = (size_t)lineStart[1];
-              line.end_pt.at(0) = (size_t)lineEnd[0];
-              line.end_pt.at(1) = (size_t)lineEnd[1];
+              line.start_pt.at(0) = (size_t)line_start[0];
+              line.start_pt.at(1) = (size_t)line_start[1];
+              line.end_pt.at(0) = (size_t)line_end[0];
+              line.end_pt.at(1) = (size_t)line_end[1];
   					}
   				}
   			}
   		}
   		// enhanced the robustness: none line segment are detected
-  		if (!lastLength) {
-  			line.start_pt.at(0) = (size_t)rStart;
-  			line.start_pt.at(1) = (size_t)cStart;
-  			line.end_pt.at(0) = (size_t)rStart;
-  			line.end_pt.at(1) = (size_t)cStart;
+  		if (!last_length) {
+  			line.start_pt.at(0) = (size_t)r_start;
+  			line.start_pt.at(1) = (size_t)c_start;
+  			line.end_pt.at(0) = (size_t)r_start;
+  			line.end_pt.at(1) = (size_t)c_start;
   		}
     }
   }

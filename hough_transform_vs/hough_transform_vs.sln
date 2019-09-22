@@ -5,6 +5,10 @@ VisualStudioVersion = 16.0.29009.5
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hough_transform_vs", "hough_transform_vs.vcxproj", "{3D4D2D34-6A01-4C19-83E6-DFA7C132EB1A}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hough_transform_vs_dll", "hough_transform_vs_dll\hough_transform_vs_dll.vcxproj", "{6A913DFD-F561-4854-A3C5-F49A52723F0C}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hough_transform_vs_dll_load", "hough_transform_vs_dll_load\hough_transform_vs_dll_load.vcxproj", "{E66BE511-0FFD-4620-ADE7-B2EDBD158343}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -21,6 +25,22 @@ Global
 		{3D4D2D34-6A01-4C19-83E6-DFA7C132EB1A}.Release|x64.Build.0 = Release|x64
 		{3D4D2D34-6A01-4C19-83E6-DFA7C132EB1A}.Release|x86.ActiveCfg = Release|Win32
 		{3D4D2D34-6A01-4C19-83E6-DFA7C132EB1A}.Release|x86.Build.0 = Release|Win32
+		{6A913DFD-F561-4854-A3C5-F49A52723F0C}.Debug|x64.ActiveCfg = Debug|x64
+		{6A913DFD-F561-4854-A3C5-F49A52723F0C}.Debug|x64.Build.0 = Debug|x64
+		{6A913DFD-F561-4854-A3C5-F49A52723F0C}.Debug|x86.ActiveCfg = Debug|Win32
+		{6A913DFD-F561-4854-A3C5-F49A52723F0C}.Debug|x86.Build.0 = Debug|Win32
+		{6A913DFD-F561-4854-A3C5-F49A52723F0C}.Release|x64.ActiveCfg = Release|x64
+		{6A913DFD-F561-4854-A3C5-F49A52723F0C}.Release|x64.Build.0 = Release|x64
+		{6A913DFD-F561-4854-A3C5-F49A52723F0C}.Release|x86.ActiveCfg = Release|Win32
+		{6A913DFD-F561-4854-A3C5-F49A52723F0C}.Release|x86.Build.0 = Release|Win32
+		{E66BE511-0FFD-4620-ADE7-B2EDBD158343}.Debug|x64.ActiveCfg = Debug|x64
+		{E66BE511-0FFD-4620-ADE7-B2EDBD158343}.Debug|x64.Build.0 = Debug|x64
+		{E66BE511-0FFD-4620-ADE7-B2EDBD158343}.Debug|x86.ActiveCfg = Debug|Win32
+		{E66BE511-0FFD-4620-ADE7-B2EDBD158343}.Debug|x86.Build.0 = Debug|Win32
+		{E66BE511-0FFD-4620-ADE7-B2EDBD158343}.Release|x64.ActiveCfg = Release|x64
+		{E66BE511-0FFD-4620-ADE7-B2EDBD158343}.Release|x64.Build.0 = Release|x64
+		{E66BE511-0FFD-4620-ADE7-B2EDBD158343}.Release|x86.ActiveCfg = Release|Win32
+		{E66BE511-0FFD-4620-ADE7-B2EDBD158343}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

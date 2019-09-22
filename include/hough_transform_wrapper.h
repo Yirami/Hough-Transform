@@ -14,6 +14,20 @@
 #define _HOUGH_TRANSFORM_WRAPPER_H_
 
 
+#ifdef __linux__
+
+#else // windows
+// #define MAKE_LIB
+#ifdef MAKE_LIB
+#ifdef HOUGHTRANSFORMVSDLL_EXPORTS
+#define HOUGHTRANSFORMVSDLL_API __declspec(dllexport)
+#else
+#define HOUGHTRANSFORMVSDLL_API __declspec(dllimport)
+#endif
+#endif  // MAKE_LIB
+#endif  // __linux__
+
+
 #ifdef __cplusplus
 #include <array>
 #include <string.h>
@@ -21,6 +35,8 @@
 #include <vector>
 #include <array>
 #include "./standard_hough_transform.hpp"
+#include "./directional_coded_hough_transform.hpp"
+
 extern "C" {
 #endif
 
@@ -28,7 +44,17 @@ extern "C" {
 
 // write wrapper functions invoked by c projects here
 
-void CCall_SHT(const unsigned char *img, const unsigned int img_sz[2], const unsigned int max_lines, size_t *vote, unsigned int vote_sz[2], double *lines_mat);
+#ifdef __linux__
+
+#else // windows
+#ifdef MAKE_LIB
+HOUGHTRANSFORMVSDLL_API void CCall_SHT(const unsigned char *img, const int img_sz[2], const int max_lines, double *lines_mat);
+HOUGHTRANSFORMVSDLL_API void CCall_DCHT(const unsigned char *img, const int img_sz[2], const int max_lines, double *lines_mat);
+#else
+void CCall_SHT(const unsigned char *img, const int img_sz[2], const int max_lines, double *lines_mat);
+void CCall_DCHT(const unsigned char *img, const int img_sz[2], const int max_lines, double *lines_mat);
+#endif
+#endif //  __linux__
 
 #ifdef __cplusplus
 }

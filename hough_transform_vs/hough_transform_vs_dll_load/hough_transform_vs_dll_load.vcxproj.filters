@@ -15,21 +15,24 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\singleton.hpp">
+    <ClInclude Include="..\..\include\hough_transform_wrapper.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\standard_hough_transform.hpp">
+    <ClInclude Include="..\..\include\directional_coded_hough_transform.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\directional_coded_hough_transform.hpp">
+    <ClInclude Include="..\..\include\singleton.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\timer.hpp">
+    <ClInclude Include="..\..\include\standard_hough_transform.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\debug_cpp.cpp">
+    <ClCompile Include="..\..\test_opencv.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\hough_transform_wrapper.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

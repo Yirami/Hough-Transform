@@ -37,8 +37,3 @@
 build
 bin
 media
-hough_transform_vs/*
-!hough_transform_vs/hough_transform_vs.sln
-!hough_transform_vs/hough_transform_vs.vcxproj
-!hough_transform_vs/hough_transform_vs.vcxproj.filters
-!hough_transform_vs/hough_transform_vs.vcxproj.user
