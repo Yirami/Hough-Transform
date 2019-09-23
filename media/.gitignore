@@ -1,0 +1,9 @@
+#exclude all file without suffix
+*
+#exclude all file with a suffix
+*.*
+#except dir
+!*/
+#except ...
+!.gitignore
+!debug_edge.png

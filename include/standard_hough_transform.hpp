@@ -218,12 +218,12 @@ namespace YHoughTransform {
   		if (abs(theta)<=45) {
   			bias_flag = 1;
   			dr0 = 1;
-  			dc0 = (int)floor(fabs(curr_sin)*((int)1 << shift)/curr_cos+0.5);
-  			c0 = (c0 << shift)+((int)1 << (shift-1));
+  			dc0 = (int)floor(fabs(curr_sin)*(T)(1 << shift)/curr_cos+0.5);
+  			c0 = (c0 << shift)+(1 << (shift-1));
   		}
   		else {
   			dc0 = 1;
-  			dr0 = (int)floor(curr_cos*(1 << shift)/fabs(curr_sin)+0.5);
+  			dr0 = (int)floor(curr_cos*(T)(1 << shift)/fabs(curr_sin)+0.5);
   			r0 = (r0 << shift)+(1 << (shift-1));
   		}
   		if (theta>0)
@@ -242,7 +242,7 @@ namespace YHoughTransform {
   				r1 = r >> shift;
   			}
   			if (c1<0||c1>=(int)img_size_wh_[0]||r1<0||r1>=(int)img_size_wh_[1]) {
-  				// ensure last_length has been update before  exit
+  				// ensure last_length has been update before exit
           int this_length = (int)floor(sqrt(
                                       pow((T)line_start[0]-(T)line_end[0],2) +
                                       pow((T)line_start[1]-(T)line_end[1],2)));
@@ -255,7 +255,7 @@ namespace YHoughTransform {
   				}
   				break;
   			}
-  			if (img_[c1*img_size_wh_[1]+r1]) {
+  			if (img_[r1*img_size_wh_[0]+c1]) {
   				gap = 0;
   				if (start_p_flag) {
   					start_p_flag = 0;
@@ -272,9 +272,9 @@ namespace YHoughTransform {
   			else if (!start_p_flag) {
   				// fuzzy processing the points beside line
   				int left_p_flag = 0, right_p_flag = 0;
-  				if (c1>0 && img_[(c1-1)*img_size_wh_[1]+r1])
+  				if (c1>0 && img_[r1*img_size_wh_[0]+(c1-1)])
   					left_p_flag = 1;
-  				if (c1<(int)img_size_wh_[0]-1 && img_[(c1+1)*img_size_wh_[1]+r1])
+  				if (c1<(int)img_size_wh_[0]-1 && img_[r1*img_size_wh_[0]+(c1+1)])
   					right_p_flag = 1;
   				if (left_p_flag || right_p_flag) {
   					gap = 0;
