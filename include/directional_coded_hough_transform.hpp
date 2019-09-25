@@ -23,7 +23,8 @@ namespace YHoughTransform {
   class DCHT: public SHT<T, PI_DIV> {
   public:
     DCHT();
-    void Vote();
+    void GetLinesInDegree(size_t max_lines, vector<HoughLine<T>> &lines);
+    virtual void Vote();
     using SHT<T, PI_DIV>::PI;
   protected:
     using SHT<T, PI_DIV>::img_;
@@ -35,6 +36,10 @@ namespace YHoughTransform {
     using SHT<T, PI_DIV>::vote_map_;
     using SHT<T, PI_DIV>::tri_map_init_;
     using SHT<T, PI_DIV>::tri_map_;
+  private:
+    using SHT<T, PI_DIV>::FindPeaks;
+    using SHT<T, PI_DIV>::FindLines;
+    using SHT<T, PI_DIV>::Rad2Deg_;
   private:
     bool skip_unmatched_pixel_ = true;
   };
@@ -52,6 +57,17 @@ namespace YHoughTransform {
       tri_map_init_ = true;
     }
   }
+
+  template <typename T, size_t PI_DIV>
+  void DCHT<T, PI_DIV>::GetLinesInDegree(size_t max_lines,
+                                         vector<HoughLine<T>> &lines) {
+    Vote();
+    FindPeaks(max_lines, lines);
+    FindLines(lines);
+    for (auto &line:lines)
+      line.theta = Rad2Deg_(line.theta);
+  }
+
 
   template <typename T, size_t PI_DIV>
   void DCHT<T, PI_DIV>::Vote() {
