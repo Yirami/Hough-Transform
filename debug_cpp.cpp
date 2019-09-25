@@ -51,17 +51,17 @@ int main() {
 
   std::vector<YHoughTransform::HoughLine<double>> lines2;
   dcht_timer.Start();
-  // dcht.Vote();
-  // dcht.FindPeaks(max_lines, lines2);
-  // dcht.FindLines(lines2);
-  dcht.GetLinesInDegree(max_lines, lines2);
+  dcht.Vote();
+  dcht.FindPeaks(max_lines, lines2);
+  dcht.FindLines(lines2);
+  dcht.Radian2Degree(lines2);
   dcht_timer.Stop();
   std::vector<YHoughTransform::HoughLine<double>> lines;
   sht_timer.Start();
-  // sht.Vote();
-  // sht.FindPeaks(max_lines, lines);
-  // sht.FindLines(lines);
-  sht.GetLinesInDegree(max_lines, lines);
+  sht.Vote();
+  sht.FindPeaks(max_lines, lines);
+  sht.FindLines(lines);
+  sht.Radian2Degree(lines);
   sht_timer.Stop();
   double sht_t = sht_timer.Elapsed_ms();
   double dcht_t = dcht_timer.Elapsed_ms();

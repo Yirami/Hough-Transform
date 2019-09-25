@@ -46,14 +46,13 @@ namespace YHoughTransform {
     ~SHT() {if (vote_map_) delete [] vote_map_;};
     void FeedImage(const unsigned char *img, array<size_t, 2> &size_wh);
     void SetAngleFilter(vector<size_t> filt) {theta_filter_ = filt;};
-    void GetLines(size_t max_lines, vector<HoughLine<T>> &lines);
-    void GetLinesInDegree(size_t max_lines, vector<HoughLine<T>> &lines);
-    void Vote();  // if debug vote map, Vote() is the only one to be invoked
-    size_t GetThetaDiv() const {return theta_div_;};
-    size_t GetRhoDiv() const {return rho_div_;};
-    const size_t *GetVotePtr() const {return vote_map_;};
+    void Vote();  // the only one to be invoked while debug vote map
+    size_t GetThetaDiv() const {return theta_div_;};  // for debug vote map
+    size_t GetRhoDiv() const {return rho_div_;};  // for debug vote map
+    const size_t *GetVotePtr() const {return vote_map_;}; // for debug vote map
     void FindPeaks(size_t max_lines, vector<HoughLine<T>> &lines);
     void FindLines(vector<HoughLine<T>> &lines) const;
+    inline void Radian2Degree(vector<HoughLine<T>> &lines) const;
   protected:
     T Rad2Deg_(T radian) const{return 180*radian/PI;};
     T Deg2Rad_(T degree) const{return PI*degree/180;};
@@ -114,19 +113,7 @@ namespace YHoughTransform {
   }
 
   template <typename T, size_t PI_DIV>
-  void SHT<T, PI_DIV>::GetLines(size_t max_lines,
-                                vector<HoughLine<T>> &lines) {
-    Vote();
-    FindPeaks(max_lines, lines);
-    FindLines(lines);
-  }
-
-  template <typename T, size_t PI_DIV>
-  void SHT<T, PI_DIV>::GetLinesInDegree(size_t max_lines,
-                                        vector<HoughLine<T>> &lines) {
-    Vote();
-    FindPeaks(max_lines, lines);
-    FindLines(lines);
+  inline void SHT<T, PI_DIV>::Radian2Degree(vector<HoughLine<T>> &lines) const{
     for (auto &line:lines)
       line.theta = Rad2Deg_(line.theta);
   }
