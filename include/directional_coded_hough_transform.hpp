@@ -90,86 +90,46 @@ namespace YHoughTransform {
   					//
   					//  The configuration below can be adjusted as appropriate
   					//
-            // -45~0
+            // -90~-45
   					case 1002:case 2001:case 1001:case 2002:
-              theta_limit[0] = theta_limit_node[0];
-              theta_limit[1] = theta_limit_node[1];
-  						break;
-  					// -90~-45
-  					case 2100:case 1200:case 1100:case 2200:
               theta_limit[0] = 0;
               theta_limit[1] = theta_limit_node[0];
   						break;
-  					// 45~90
-  					case 210:case 120:case 110:case 220:
-              theta_limit[0] = theta_limit_node[2];
-              theta_limit[1] = (int)PI_DIV-1;
+  					// -45~0
+  					case 2100:case 1200:case 1100:case 2200:
+              theta_limit[0] = theta_limit_node[0];
+              theta_limit[1] = theta_limit_node[1];
   						break;
   					// 0~45
-  					case 21:case 12:case 11:case 22:
+  					case 210:case 120:case 110:case 220:
               theta_limit[0] = theta_limit_node[1];
               theta_limit[1] = theta_limit_node[2];
+  						break;
+  					// 45~90
+  					case 21:case 12:case 11:case 22:
+              theta_limit[0] = theta_limit_node[2];
+              theta_limit[1] = (int)PI_DIV-1;
   						break;
   					// -90~0
   					case 1101:case 2000:case 2101:case 1201:case 1102:case 2111:
               theta_limit[0] = 0;
               theta_limit[1] = theta_limit_node[1];
   						break;
-  					// 45~-45
+  					// -45~45
   					case 1110:case 200:case 2110:case 1210:case 1120:case 1211:
-              theta_limit[0] = theta_limit_node[2];
-              theta_limit[1] = theta_limit_node[0];
+              theta_limit[0] = theta_limit_node[0];
+              theta_limit[1] = theta_limit_node[2];
   						break;
   					// 0~90
   					case 111:case 20:case 211:case 121:case 112:case 1121:
               theta_limit[0] = theta_limit_node[1];
               theta_limit[1] = (int)PI_DIV-1;
   						break;
-  					// -45~45
+  					// 45~-45
   					case 1011:case 2:case 2011:case 1021:case 1012:case 1112:
-              theta_limit[0] = theta_limit_node[0];
-              theta_limit[1] = theta_limit_node[2];
+              theta_limit[0] = theta_limit_node[2];
+              theta_limit[1] = theta_limit_node[0];
   						break;
-            // // -90~-45
-  					// case 1002:case 2001:case 1001:case 2002:
-            //   theta_limit[0] = 0;
-            //   theta_limit[1] = theta_limit_node[0];
-  					// 	break;
-  					// // -45~0
-  					// case 2100:case 1200:case 1100:case 2200:
-            //   theta_limit[0] = theta_limit_node[0];
-            //   theta_limit[1] = theta_limit_node[1];
-  					// 	break;
-  					// // 0~45
-  					// case 210:case 120:case 110:case 220:
-            //   theta_limit[0] = theta_limit_node[1];
-            //   theta_limit[1] = theta_limit_node[2];
-  					// 	break;
-  					// // 45~90
-  					// case 21:case 12:case 11:case 22:
-            //   theta_limit[0] = theta_limit_node[2];
-            //   theta_limit[1] = (int)PI_DIV-1;
-  					// 	break;
-  					// // -90~0
-  					// case 1101:case 2000:case 2101:case 1201:case 1102:case 2111:
-            //   theta_limit[0] = 0;
-            //   theta_limit[1] = theta_limit_node[1];
-  					// 	break;
-  					// // -45~45
-  					// case 1110:case 200:case 2110:case 1210:case 1120:case 1211:
-            //   theta_limit[0] = theta_limit_node[0];
-            //   theta_limit[1] = theta_limit_node[2];
-  					// 	break;
-  					// // 0~90
-  					// case 111:case 20:case 211:case 121:case 112:case 1121:
-            //   theta_limit[0] = theta_limit_node[1];
-            //   theta_limit[1] = (int)PI_DIV-1;
-  					// 	break;
-  					// // 45~-45
-  					// case 1011:case 2:case 2011:case 1021:case 1012:case 1112:
-            //   theta_limit[0] = theta_limit_node[2];
-            //   theta_limit[1] = theta_limit_node[0];
-  					// 	break;
   					// else
   					default:
   						if (skip_unmatched_pixel_) continue;
@@ -181,8 +141,8 @@ namespace YHoughTransform {
             else {
               if (th<theta_limit[0] && th>theta_limit[1]) continue;
             }
-            const double rho_c = floor((r*tri_map_->at(th).sin+
-                                        c*tri_map_->at(th).cos)/rho_res_+0.5);
+            const double rho_c = floor((r*tri_map_->at(th).cos+
+                                        c*tri_map_->at(th).sin)/rho_res_+0.5);
             const size_t rho_c_shift = (size_t)(rho_c + rho_shift);
             vote_map_[PI_DIV*rho_c_shift+th]++;
           }

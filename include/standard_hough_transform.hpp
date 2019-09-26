@@ -34,7 +34,7 @@ namespace YHoughTransform {
   template <typename T>
   struct HoughLine {
     T rho;    // 0 is top-left corner
-    T theta;  // [-pi/2, pi/2)@[-90, 90) 0 for verticala and negative for left
+    T theta;  // [-pi/2, pi/2) 0 for horizontal(right), positive(anti-clockwise)
     array<int, 2> start_pt;  // [column, row]
     array<int, 2> end_pt;
   };
@@ -125,8 +125,8 @@ namespace YHoughTransform {
       for (size_t r=0; r<img_size_wh_[1]; r++) {
         if (img_[r*img_size_wh_[0]+c])
           for (auto th:theta_filter_) {
-            const T rho_c = floor((r*tri_map_->at(th).sin+\
-                                   c*tri_map_->at(th).cos)/rho_res_+0.5);
+            const T rho_c = floor((r*tri_map_->at(th).cos+\
+                                   c*tri_map_->at(th).sin)/rho_res_+0.5);
             const size_t rho_c_shift = (size_t)(rho_c + rho_shift);
             vote_map_[PI_DIV*rho_c_shift+th]++;
           }
@@ -190,27 +190,27 @@ namespace YHoughTransform {
       const T curr_cos = cos(line.theta);
 
       int r_start = 0;
-  		int c_start = (int)floor((rho-(T)r_start*curr_sin)/curr_cos);
+  		int c_start = (int)floor((rho-(T)r_start*curr_cos)/curr_sin);
   		// determine whether the c_start overflows the boundary
   		if (c_start<0) {
   			c_start = 0;
-  			r_start = (int)floor((rho-(T)c_start*curr_cos)/curr_sin);
+  			r_start = (int)floor((rho-(T)c_start*curr_sin)/curr_cos);
   		}
   		else if (c_start>=(int)img_size_wh_[0]) {
   			c_start = (int)img_size_wh_[0]-1;
-  			r_start = (int)floor((rho-(T)c_start*curr_cos)/curr_sin);
+  			r_start = (int)floor((rho-(T)c_start*curr_sin)/curr_cos);
   		}
   		int bias_flag = 0;
   		int r0 = r_start, c0 = c_start, dr0, dc0;
   		if (abs(theta)<=45) {
   			bias_flag = 1;
   			dr0 = 1;
-  			dc0 = (int)floor(fabs(curr_sin)*(T)(1 << shift)/curr_cos+0.5);
+  			dc0 = (int)floor(fabs(curr_cos)*(T)(1 << shift)/curr_sin+0.5);
   			c0 = (c0 << shift)+(1 << (shift-1));
   		}
   		else {
   			dc0 = 1;
-  			dr0 = (int)floor(curr_cos*(T)(1 << shift)/fabs(curr_sin)+0.5);
+  			dr0 = (int)floor(curr_sin*(T)(1 << shift)/fabs(curr_cos)+0.5);
   			r0 = (r0 << shift)+(1 << (shift-1));
   		}
   		if (theta>0)
