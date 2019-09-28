@@ -23,7 +23,7 @@ namespace YHoughTransform {
   class DCHT: public SHT<T, PI_DIV> {
   public:
     DCHT();
-    void Vote();
+    virtual void Vote();
     using SHT<T, PI_DIV>::PI;
   protected:
     using SHT<T, PI_DIV>::img_;

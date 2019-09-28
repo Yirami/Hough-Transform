@@ -31,12 +31,17 @@ namespace YHoughTransform {
     T cos;
   };
 
+  struct Point2D {
+    int x;  // along columns
+    int y;  // along rows
+  };
+
   template <typename T>
   struct HoughLine {
     T rho;    // 0 is top-left corner
     T theta;  // [-pi/2, pi/2) 0 for horizontal(right), positive(anti-clockwise)
-    array<int, 2> start_pt;  // [column, row]
-    array<int, 2> end_pt;
+    Point2D start_pt;
+    Point2D end_pt;
   };
 
   template <typename T, size_t PI_DIV=180>  // [-pi/2, pi/2)
@@ -44,14 +49,14 @@ namespace YHoughTransform {
   public:
     SHT();
     ~SHT() {if (vote_map_) delete [] vote_map_;};
-    void FeedImage(const unsigned char *img, array<size_t, 2> &size_wh);
+    virtual void FeedImage(const unsigned char *img, array<size_t, 2> &size_wh);
     void SetAngleFilter(vector<size_t> filt) {theta_filter_ = filt;};
-    void Vote();  // the only one to be invoked while debug vote map
+    virtual void Vote();  // the only one to be invoked while debug vote map
     size_t GetThetaDiv() const {return theta_div_;};  // for debug vote map
     size_t GetRhoDiv() const {return rho_div_;};  // for debug vote map
     const size_t *GetVotePtr() const {return vote_map_;}; // for debug vote map
-    void FindPeaks(size_t max_lines, vector<HoughLine<T>> &lines);
-    void FindLines(vector<HoughLine<T>> &lines) const;
+    virtual void FindPeaks(size_t max_lines, vector<HoughLine<T>> &lines);
+    virtual void FindLines(vector<HoughLine<T>> &lines) const;
     inline void Radian2Degree(vector<HoughLine<T>> &lines) const;
   protected:
     T Rad2Deg_(T radian) const{return 180*radian/PI;};
@@ -217,7 +222,8 @@ namespace YHoughTransform {
   			dc0 = -dc0;
   		// walk along the line using fixed-point arithmetics,
   		// ... stop at the image border
-  		int last_length = 0, line_start[2] = {0}, line_end[2] = {0};
+  		int last_length = 0;
+      Point2D line_start = {0}, line_end = {0};
   		for (int gap=0, c=c0, r=r0, start_p_flag =1; ; c+=dc0, r+=dr0) {
   			int r1, c1;
   			if (bias_flag) {
@@ -231,14 +237,14 @@ namespace YHoughTransform {
   			if (c1<0||c1>=(int)img_size_wh_[0]||r1<0||r1>=(int)img_size_wh_[1]) {
   				// ensure last_length has been update before exit
           int this_length = (int)floor(sqrt(
-                                      pow((T)line_start[0]-(T)line_end[0],2) +
-                                      pow((T)line_start[1]-(T)line_end[1],2)));
+                                      pow((T)line_start.x-(T)line_end.x,2) +
+                                      pow((T)line_start.y-(T)line_end.y,2)));
   				if (this_length > last_length) {
             last_length = this_length;
-            line.start_pt.at(0) = line_start[0];
-            line.start_pt.at(1) = line_start[1];
-            line.end_pt.at(0) = line_end[0];
-            line.end_pt.at(1) = line_end[1];
+            line.start_pt.x = line_start.x;
+            line.start_pt.y = line_start.y;
+            line.end_pt.x = line_end.x;
+            line.end_pt.y = line_end.y;
   				}
   				break;
   			}
@@ -246,14 +252,14 @@ namespace YHoughTransform {
   				gap = 0;
   				if (start_p_flag) {
   					start_p_flag = 0;
-  					line_start[0] = c1;
-  					line_start[1] = r1;
-  					line_end[0] = c1;
-  					line_end[1] = r1;
+  					line_start.x = c1;
+  					line_start.y = r1;
+  					line_end.x = c1;
+  					line_end.y = r1;
   				}
   				else {
-  					line_end[0] = c1;
-  					line_end[1] = r1;
+  					line_end.x = c1;
+  					line_end.y = r1;
   				}
   			}
   			else if (!start_p_flag) {
@@ -265,33 +271,33 @@ namespace YHoughTransform {
   					right_p_flag = 1;
   				if (left_p_flag || right_p_flag) {
   					gap = 0;
-            line_end[0] = c1;
-  					line_end[1] = r1;
+            line_end.x = c1;
+  					line_end.y = r1;
   					continue;
   				}
   				// end of line segment
   				if (++gap > (int)LINE_GAP) {
   					start_p_flag = 1;
   					int this_length = (int)floor(sqrt(
-                                      pow((T)line_start[0]-(T)line_end[0],2) +
-                                      pow((T)line_start[1]-(T)line_end[1],2)));
+                                      pow((T)line_start.x-(T)line_end.x,2) +
+                                      pow((T)line_start.y-(T)line_end.y,2)));
   					if (this_length > last_length) {
   						last_length = this_length;
   						// coordinate transformation
-              line.start_pt.at(0) = line_start[0];
-              line.start_pt.at(1) = line_start[1];
-              line.end_pt.at(0) = line_end[0];
-              line.end_pt.at(1) = line_end[1];
+              line.start_pt.x = line_start.x;
+              line.start_pt.y = line_start.y;
+              line.end_pt.x = line_end.x;
+              line.end_pt.y = line_end.y;
   					}
   				}
   			}
   		}
   		// enhanced the robustness: none line segment are detected
   		if (!last_length) {
-  			line.start_pt.at(0) = r_start;
-  			line.start_pt.at(1) = c_start;
-  			line.end_pt.at(0) = r_start;
-  			line.end_pt.at(1) = c_start;
+  			line.start_pt.x = r_start;
+  			line.start_pt.y = c_start;
+  			line.end_pt.x = r_start;
+  			line.end_pt.y = c_start;
   		}
     }
   }
