@@ -207,7 +207,7 @@ namespace YHoughTransform {
   		}
   		int bias_flag = 0;
   		int r0 = r_start, c0 = c_start, dr0, dc0;
-  		if (abs(theta)<=45) {
+  		if (abs(theta)>45) {
   			bias_flag = 1;
   			dr0 = 1;
   			dc0 = (int)floor(fabs(curr_cos)*(T)(1 << shift)/curr_sin+0.5);
