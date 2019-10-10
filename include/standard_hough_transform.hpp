@@ -50,15 +50,20 @@ namespace YHoughTransform {
     SHT();
     ~SHT() {if (vote_map_) delete [] vote_map_;};
     virtual void FeedImage(const unsigned char *img, array<size_t, 2> &size_wh);
-    void SetAngleFilter(vector<size_t> filt) {theta_filter_ = filt;};
+    inline void SetAngleFilter();
+    void SetAngleFilter(vector<size_t> &filt) {theta_filter_ = filt;};
     virtual void Vote();  // the only one to be invoked while debug vote map
     size_t GetThetaDiv() const {return theta_div_;};  // for debug vote map
     size_t GetRhoDiv() const {return rho_div_;};  // for debug vote map
     const size_t *GetVotePtr() const {return vote_map_;}; // for debug vote map
     virtual void FindPeaks(size_t max_lines, vector<HoughLine<T>> &lines);
+    virtual void FindPeaksS(vector<size_t> &filt,
+                            size_t max_lines,
+                            vector<HoughLine<T>> &lines);
     virtual void FindLines(vector<HoughLine<T>> &lines) const;
     inline void Radian2Degree(vector<HoughLine<T>> &lines) const;
   protected:
+
     T Rad2Deg_(T radian) const{return 180*radian/PI;};
     T Deg2Rad_(T degree) const{return PI*degree/180;};
   public:
@@ -92,9 +97,7 @@ namespace YHoughTransform {
 
   template <typename T, size_t PI_DIV>
   SHT<T, PI_DIV>::SHT() {
-    for (size_t i=0; i<PI_DIV; i++)
-    // for (size_t i=30; i<PI_DIV-30; i++)
-      theta_filter_.push_back(i);
+    SetAngleFilter();
     if (!tri_map_init_) {
       for (size_t i=0; i<PI_DIV; i++) {
         tri_map_->at(i).angle = theta_res_*i-PI/2;
@@ -103,6 +106,13 @@ namespace YHoughTransform {
       }
       tri_map_init_ = true;
     }
+  }
+
+  template <typename T, size_t PI_DIV>
+  void SHT<T, PI_DIV>::SetAngleFilter() {
+    for (size_t i=0; i<PI_DIV; i++)
+    // for (size_t i=30; i<PI_DIV-30; i++)
+      theta_filter_.push_back(i);
   }
 
   template <typename T, size_t PI_DIV>
@@ -186,6 +196,22 @@ namespace YHoughTransform {
   }
 
   template <typename T, size_t PI_DIV>
+  void SHT<T, PI_DIV>::FindPeaksS(vector<size_t> &filt,
+                                  size_t max_lines,
+                                  vector<HoughLine<T>> &lines) {
+    // puppet for vote_map_ and theta_filter_
+    size_t *vote_map_puppet = new size_t[rho_div_*theta_div_];
+    std::memcpy(vote_map_puppet, vote_map_, rho_div_*theta_div_*sizeof(size_t));
+    size_t *vote_map_swap = vote_map_;
+    vote_map_ = vote_map_puppet;
+    theta_filter_.swap(filt);
+    FindPeaks(max_lines, lines);
+    theta_filter_.swap(filt);
+    vote_map_ = vote_map_swap;
+    delete [] vote_map_puppet;
+  }
+
+  template <typename T, size_t PI_DIV>
   void SHT<T, PI_DIV>::FindLines(vector<HoughLine<T>> &lines) const{
     constexpr int shift = 16;
     for (auto &line:lines) {
@@ -205,10 +231,10 @@ namespace YHoughTransform {
   			c_start = (int)img_size_wh_[0]-1;
   			r_start = (int)floor((rho-(T)c_start*curr_sin)/curr_cos);
   		}
-  		int bias_flag = 0;
+  		bool bias_flag = false;
   		int r0 = r_start, c0 = c_start, dr0, dc0;
   		if (abs(theta)>45) {
-  			bias_flag = 1;
+  			bias_flag = true;
   			dr0 = 1;
   			dc0 = (int)floor(fabs(curr_cos)*(T)(1 << shift)/curr_sin+0.5);
   			c0 = (c0 << shift)+(1 << (shift-1));
