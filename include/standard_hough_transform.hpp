@@ -236,12 +236,12 @@ namespace YHoughTransform {
   		if (abs(theta)>45) {
   			bias_flag = true;
   			dr0 = 1;
-  			dc0 = (int)floor(fabs(curr_cos)*(T)(1 << shift)/curr_sin+0.5);
+  			dc0 = (int)floor(curr_cos*(T)(1 << shift)/fabs(curr_sin)+0.5);
   			c0 = (c0 << shift)+(1 << (shift-1));
   		}
   		else {
   			dc0 = 1;
-  			dr0 = (int)floor(curr_sin*(T)(1 << shift)/fabs(curr_cos)+0.5);
+  			dr0 = (int)floor(fabs(curr_sin)*(T)(1 << shift)/curr_cos+0.5);
   			r0 = (r0 << shift)+(1 << (shift-1));
   		}
   		if (theta>0)
