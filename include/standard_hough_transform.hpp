@@ -56,11 +56,14 @@ namespace YHoughTransform {
     size_t GetThetaDiv() const {return theta_div_;};  // for debug vote map
     size_t GetRhoDiv() const {return rho_div_;};  // for debug vote map
     const size_t *GetVotePtr() const {return vote_map_;}; // for debug vote map
-    virtual void FindPeaks(size_t max_lines, vector<HoughLine<T>> &lines);
-    virtual void FindPeaksS(vector<size_t> &filt,
-                            size_t max_lines,
-                            vector<HoughLine<T>> &lines);
-    virtual void FindLines(vector<HoughLine<T>> &lines) const;
+    void FindPeaks(const vector<size_t> &angle_filter,
+                   size_t max_lines,
+                   vector<HoughLine<T>> &lines);
+    inline void FindPeaks(size_t max_lines, vector<HoughLine<T>> &lines);
+    inline void FindPeaksS(const vector<size_t> &angle_filter,
+                           size_t max_lines,
+                           vector<HoughLine<T>> &lines);
+    void FindLines(vector<HoughLine<T>> &lines) const;
     inline void Radian2Degree(vector<HoughLine<T>> &lines) const;
   protected:
 
@@ -150,7 +153,8 @@ namespace YHoughTransform {
   }
 
   template <typename T, size_t PI_DIV>
-  void SHT<T, PI_DIV>::FindPeaks(size_t max_lines,
+  void SHT<T, PI_DIV>::FindPeaks(const vector<size_t> &angle_filter,
+                                 size_t max_lines,
                                  vector<HoughLine<T>> &lines) {
     array<int, 2> suppress = {(int)ceil(Deg2Rad_(SUPPRESS_THETA)/theta_res_),
                               (int)ceil(SUPPRESS_RHO/rho_res_)};
@@ -159,7 +163,7 @@ namespace YHoughTransform {
       // search maximum vote
       size_t max_vote = 0;
       int max_r = 0, max_c = 0;
-      for (auto c:theta_filter_) {
+      for (auto c:angle_filter) {
         for (int r=0; r<(int)rho_div_; r++)
           if (vote_map_[(size_t)r*PI_DIV+c]>max_vote) {
             max_vote = vote_map_[(size_t)r*PI_DIV+c];
@@ -196,17 +200,21 @@ namespace YHoughTransform {
   }
 
   template <typename T, size_t PI_DIV>
-  void SHT<T, PI_DIV>::FindPeaksS(vector<size_t> &filt,
-                                  size_t max_lines,
-                                  vector<HoughLine<T>> &lines) {
-    // puppet for vote_map_ and theta_filter_
+  inline void SHT<T, PI_DIV>::FindPeaks(size_t max_lines,
+                                        vector<HoughLine<T>> &lines) {
+    FindPeaks(theta_filter_, max_lines, lines);
+  }
+
+  template <typename T, size_t PI_DIV>
+  inline void SHT<T, PI_DIV>::FindPeaksS(const vector<size_t> &angle_filter,
+                                         size_t max_lines,
+                                         vector<HoughLine<T>> &lines) {
+    // puppet for vote_map_
     size_t *vote_map_puppet = new size_t[rho_div_*theta_div_];
     std::memcpy(vote_map_puppet, vote_map_, rho_div_*theta_div_*sizeof(size_t));
     size_t *vote_map_swap = vote_map_;
     vote_map_ = vote_map_puppet;
-    theta_filter_.swap(filt);
-    FindPeaks(max_lines, lines);
-    theta_filter_.swap(filt);
+    FindPeaks(angle_filter, max_lines, lines);
     vote_map_ = vote_map_swap;
     delete [] vote_map_puppet;
   }
