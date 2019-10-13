@@ -68,20 +68,18 @@ namespace YHoughTransform {
           // index of limit start&end angle := [start_idx, end_idx]
           int theta_limit[2] = {0, (int)PI_DIV-1};
           // index of reference point
-          int ref_pt_idx = (r-1)*(int)img_size_wh_[0]+c-1;
+          int top_left_idx = (r-1)*(int)img_size_wh_[0]+c-1;
           // convolution result
-          const int mat11 = img_[ref_pt_idx]?1:0;
-          const int mat12 = img_[ref_pt_idx+1]?1:0;
-          const int mat13 = img_[ref_pt_idx+2]?1:0;
-          const int mat21 = img_[ref_pt_idx+img_size_wh_[0]]?1:0;
-          const int mat23 = img_[ref_pt_idx+img_size_wh_[0]+2]?1:0;
-          const int mat31 = img_[ref_pt_idx+2*img_size_wh_[0]]?1:0;
-          const int mat32 = img_[ref_pt_idx+2*img_size_wh_[0]+1]?1:0;
-          const int mat33 = img_[ref_pt_idx+2*img_size_wh_[0]+2]?1:0;
-  				int sum = 1000*(mat11+mat33)+ \
-                    100*(mat21+mat23)+ \
-                    10*(mat13+mat31)+ \
-                    mat12+mat32;
+          unsigned char b4=0, b3=0, b2=0, b1=0;
+          if (img_[top_left_idx]) b4++; // 11
+          if (img_[top_left_idx+2*img_size_wh_[0]+2]) b4++; // 33
+          if (img_[top_left_idx+img_size_wh_[0]]) b3++; // 21
+          if (img_[top_left_idx+img_size_wh_[0]+2]) b3++; // 23
+          if (img_[top_left_idx+2]) b2++; // 13
+          if (img_[top_left_idx+2*img_size_wh_[0]]) b2++; // 31
+          if (img_[top_left_idx+1]) b1++; // 12
+          if (img_[top_left_idx+2*img_size_wh_[0]+1]) b1++; // 32
+          const unsigned char sum = (b4<<6)|(b3<<4)|(b2<<2)|b1;
           // for each point not zero judgment angle range based on convolution
   				switch (sum) {
   					// Note: When we need to reduce the code space, we can compress
@@ -92,42 +90,42 @@ namespace YHoughTransform {
   					//  The configuration below can be adjusted as appropriate
   					//
             // -90~-45
-  					case 1002:case 2001:case 1001:case 2002:
+  					case 0x42:case 0x81:case 0x41:case 0x82:
               theta_limit[0] = 0;
               theta_limit[1] = theta_limit_node[0];
   						break;
   					// -45~0
-  					case 2100:case 1200:case 1100:case 2200:
+  					case 0x90:case 0x60:case 0x50:case 0xA0:
               theta_limit[0] = theta_limit_node[0];
               theta_limit[1] = theta_limit_node[1];
   						break;
   					// 0~45
-  					case 210:case 120:case 110:case 220:
+  					case 0x24:case 0x18:case 0x14:case 0x28:
               theta_limit[0] = theta_limit_node[1];
               theta_limit[1] = theta_limit_node[2];
   						break;
   					// 45~90
-  					case 21:case 12:case 11:case 22:
+  					case 0x09:case 0x06:case 0x05:case 0x0A:
               theta_limit[0] = theta_limit_node[2];
               theta_limit[1] = (int)PI_DIV-1;
   						break;
   					// -90~0
-  					case 1101:case 2000:case 2101:case 1201:case 1102:case 2111:
+  					case 0x51:case 0x80:case 0x91:case 0x61:case 0x52:case 0x95:
               theta_limit[0] = 0;
               theta_limit[1] = theta_limit_node[1];
   						break;
   					// -45~45
-  					case 1110:case 200:case 2110:case 1210:case 1120:case 1211:
+  					case 0x54:case 0x20:case 0x94:case 0x64:case 0x58:case 0x65:
               theta_limit[0] = theta_limit_node[0];
               theta_limit[1] = theta_limit_node[2];
   						break;
   					// 0~90
-  					case 111:case 20:case 211:case 121:case 112:case 1121:
+  					case 0x15:case 0x08:case 0x25:case 0x19:case 0x16:case 0x59:
               theta_limit[0] = theta_limit_node[1];
               theta_limit[1] = (int)PI_DIV-1;
   						break;
   					// 45~-45
-  					case 1011:case 2:case 2011:case 1021:case 1012:case 1112:
+  					case 0x45:case 0x02:case 0x85:case 0x49:case 0x46:case 0x56:
               theta_limit[0] = theta_limit_node[2];
               theta_limit[1] = theta_limit_node[0];
   						break;
