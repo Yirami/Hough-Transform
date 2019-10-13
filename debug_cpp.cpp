@@ -59,13 +59,13 @@ int main() {
   dcht.Radian2Degree(lines2);
   dcht_timer.Stop();
   std::vector<YHoughTransform::HoughLine<double>> lines;
-  std::vector<size_t> filt;
-  for (size_t i=0; i<180; i++)
-    filt.push_back(i);
+  // std::vector<size_t> filt;
+  // for (size_t i=0; i<180; i++)
+  //   filt.push_back(i);
   sht_timer.Start();
   sht.Vote();
-  // sht.FindPeaks(max_lines, lines);
-  sht.FindPeaksS(filt, max_lines, lines);
+  sht.FindPeaks(max_lines, lines);
+  // sht.FindPeaksS(filt, max_lines, lines);
   sht.FindLines(lines);
   sht.Radian2Degree(lines);
   sht_timer.Stop();

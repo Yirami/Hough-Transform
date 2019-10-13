@@ -138,15 +138,14 @@ namespace YHoughTransform {
 
   template <typename T, size_t PI_DIV>
   void SHT<T, PI_DIV>::Vote() {
+    const TriMap<T> *map_h = tri_map_->data();
     T rho_shift = ((T)rho_div_-1)/2;
     for (size_t c=0; c<img_size_wh_[0]; c++) {
       for (size_t r=0; r<img_size_wh_[1]; r++) {
         if (img_[r*img_size_wh_[0]+c])
           for (auto th:theta_filter_) {
-            const T rho_c = floor((r*tri_map_->at(th).cos+\
-                                   c*tri_map_->at(th).sin)/rho_res_+0.5);
-            const size_t rho_c_shift = (size_t)(rho_c + rho_shift);
-            vote_map_[PI_DIV*rho_c_shift+th]++;
+            const T rho = floor((r*map_h[th].cos+c*map_h[th].sin)/rho_res_+0.5);
+            vote_map_[PI_DIV*(size_t)(rho+rho_shift)+th]++;
           }
       }
     }

@@ -18,13 +18,13 @@
     <ClInclude Include="..\include\singleton.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\standard_hough_transform.hpp">
+    <ClInclude Include="..\include\timer.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="..\include\directional_coded_hough_transform.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\timer.hpp">
+    <ClInclude Include="..\include\standard_hough_transform.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

@@ -55,7 +55,8 @@ namespace YHoughTransform {
 
   template <typename T, size_t PI_DIV>
   void DCHT<T, PI_DIV>::Vote() {
-    const double rho_shift = (double)(rho_div_-1)/2;
+    const TriMap<T> *map_h = tri_map_->data();
+    const T rho_shift = (T)(rho_div_-1)/2;
     const int theta_limit_node[3] = {(int)(ceil((T)PI_DIV/4.0)),
                                      (int)(ceil((T)PI_DIV/2.0)),
                                      (int)(ceil((T)PI_DIV/4.0*3))};
@@ -141,10 +142,8 @@ namespace YHoughTransform {
             else {
               if (th<theta_limit[0] && th>theta_limit[1]) continue;
             }
-            const double rho_c = floor((r*tri_map_->at(th).cos+
-                                        c*tri_map_->at(th).sin)/rho_res_+0.5);
-            const size_t rho_c_shift = (size_t)(rho_c + rho_shift);
-            vote_map_[PI_DIV*rho_c_shift+th]++;
+            const T rho = floor((r*map_h[th].cos+c*map_h[th].sin)/rho_res_+0.5);
+            vote_map_[PI_DIV*(size_t)(rho+rho_shift)+th]++;
           }
         }
       }
