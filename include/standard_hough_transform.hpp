@@ -64,6 +64,7 @@ namespace YHoughTransform {
                            size_t max_lines,
                            vector<HoughLine<T>> &lines);
     void FindLines(vector<HoughLine<T>> &lines) const;
+    inline void Radian2Degree(HoughLine<T> &line) const;
     inline void Radian2Degree(vector<HoughLine<T>> &lines) const;
   protected:
 
@@ -128,6 +129,11 @@ namespace YHoughTransform {
     if (vote_map_) {delete [] vote_map_; vote_map_ = nullptr;}
     vote_map_ = new size_t[rho_div_*theta_div_];
     std::memset(vote_map_, 0, rho_div_*theta_div_*sizeof(size_t));
+  }
+
+  template <typename T, size_t PI_DIV>
+  inline void SHT<T, PI_DIV>::Radian2Degree(HoughLine<T> &line) const{
+    line.theta = Rad2Deg_(line.theta);
   }
 
   template <typename T, size_t PI_DIV>
