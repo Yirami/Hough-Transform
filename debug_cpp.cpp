@@ -11,6 +11,7 @@
 **/
 
 #include <vector>
+#include <list>
 #include <cstring>
 #include <iostream>
 #include <fstream>
@@ -59,7 +60,7 @@ int main() {
   dcht.Radian2Degree(lines2);
   dcht_timer.Stop();
   std::vector<YHoughTransform::HoughLine<double>> lines;
-  // std::vector<size_t> filt;
+  // std::list<size_t> filt;
   // for (size_t i=0; i<180; i++)
   //   filt.push_back(i);
   sht_timer.Start();

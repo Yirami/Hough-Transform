@@ -16,6 +16,7 @@
 #include <cmath>
 #include <array>
 #include <vector>
+#include <list>
 #include <cstring>
 
 #include "./singleton.hpp"
@@ -23,6 +24,7 @@
 namespace YHoughTransform {
   using std::vector;
   using std::array;
+  using std::list;
 
   template <typename T>
   struct TriMap {
@@ -51,16 +53,16 @@ namespace YHoughTransform {
     ~SHT() {if (vote_map_) delete [] vote_map_;};
     virtual void FeedImage(const unsigned char *img, array<size_t, 2> &size_wh);
     inline void SetAngleFilter();
-    void SetAngleFilter(vector<size_t> &filt) {theta_filter_ = filt;};
+    void SetAngleFilter(list<size_t> &filt) {theta_filter_ = filt;};
     virtual void Vote();  // the only one to be invoked while debug vote map
     size_t GetThetaDiv() const {return theta_div_;};  // for debug vote map
     size_t GetRhoDiv() const {return rho_div_;};  // for debug vote map
     const size_t *GetVotePtr() const {return vote_map_;}; // for debug vote map
-    void FindPeaks(const vector<size_t> &angle_filter,
+    void FindPeaks(const list<size_t> &angle_filter,
                    size_t max_lines,
                    vector<HoughLine<T>> &lines);
     inline void FindPeaks(size_t max_lines, vector<HoughLine<T>> &lines);
-    inline void FindPeaksS(const vector<size_t> &angle_filter,
+    inline void FindPeaksS(const list<size_t> &angle_filter,
                            size_t max_lines,
                            vector<HoughLine<T>> &lines);
     void FindLines(vector<HoughLine<T>> &lines) const;
@@ -80,7 +82,7 @@ namespace YHoughTransform {
     const unsigned char *img_ = nullptr;
     array<size_t, 2> img_size_wh_ = {0}; // [columns, rows]
 
-    vector<size_t> theta_filter_;
+    list<size_t> theta_filter_;
     T theta_res_ = PI/PI_DIV;   // resolution of theta
     T rho_res_ = 1; // resolution of rho
     size_t theta_div_ = PI_DIV;
@@ -158,7 +160,7 @@ namespace YHoughTransform {
   }
 
   template <typename T, size_t PI_DIV>
-  void SHT<T, PI_DIV>::FindPeaks(const vector<size_t> &angle_filter,
+  void SHT<T, PI_DIV>::FindPeaks(const list<size_t> &angle_filter,
                                  size_t max_lines,
                                  vector<HoughLine<T>> &lines) {
     array<int, 2> suppress = {(int)ceil(Deg2Rad_(SUPPRESS_THETA)/theta_res_),
@@ -211,7 +213,7 @@ namespace YHoughTransform {
   }
 
   template <typename T, size_t PI_DIV>
-  inline void SHT<T, PI_DIV>::FindPeaksS(const vector<size_t> &angle_filter,
+  inline void SHT<T, PI_DIV>::FindPeaksS(const list<size_t> &angle_filter,
                                          size_t max_lines,
                                          vector<HoughLine<T>> &lines) {
     // puppet for vote_map_
