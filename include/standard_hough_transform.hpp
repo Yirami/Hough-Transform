@@ -80,7 +80,7 @@ namespace YHoughTransform {
     size_t LINE_GAP = 5;
   protected:
     const unsigned char *img_ = nullptr;
-    array<size_t, 2> img_size_wh_ = {0}; // [columns, rows]
+    array<size_t, 2> img_size_wh_ = {{0}}; // [columns, rows]
 
     list<size_t> theta_filter_;
     T theta_res_ = PI/PI_DIV;   // resolution of theta
@@ -248,7 +248,7 @@ namespace YHoughTransform {
   		}
   		bool bias_flag = false;
   		int r0 = r_start, c0 = c_start, dr0, dc0;
-  		if (abs(theta)>45) {
+  		if (fabs(theta)>45) {
   			bias_flag = true;
   			dr0 = 1;
   			dc0 = (int)floor(curr_cos*(T)(1 << shift)/fabs(curr_sin)+0.5);
