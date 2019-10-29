@@ -33,17 +33,18 @@ namespace YHoughTransform {
     T cos;
   };
 
+  template <typename T=int>
   struct Point2D {
-    int x;  // along columns
-    int y;  // along rows
+    T x;  // along columns
+    T y;  // along rows
   };
 
   template <typename T>
   struct HoughLine {
     T rho;    // 0 is top-left corner
     T theta;  // [-pi/2, pi/2) 0 for horizontal(right), positive(anti-clockwise)
-    Point2D start_pt;
-    Point2D end_pt;
+    Point2D<> start_pt;
+    Point2D<> end_pt;
   };
 
   template <typename T, size_t PI_DIV=180>  // [-pi/2, pi/2)
@@ -264,7 +265,7 @@ namespace YHoughTransform {
   		// walk along the line using fixed-point arithmetics,
   		// ... stop at the image border
   		int last_length = 0;
-      Point2D line_start = {0}, line_end = {0};
+      Point2D<> line_start = {0}, line_end = {0};
   		for (int gap=0, c=c0, r=r0, start_p_flag =1; ; c+=dc0, r+=dr0) {
   			int r1, c1;
   			if (bias_flag) {
