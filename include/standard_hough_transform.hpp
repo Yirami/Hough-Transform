@@ -52,7 +52,7 @@ namespace YHoughTransform {
   public:
     SHT();
     ~SHT() {if (vote_map_) delete [] vote_map_;};
-    virtual void FeedImage(const unsigned char *img, array<size_t, 2> &size_wh);
+    virtual void FeedImage(const unsigned char *img, const array<size_t, 2> &size_wh);
     inline void SetAngleFilter();
     void SetAngleFilter(list<size_t> &filt) {theta_filter_ = filt;};
     virtual void Vote();  // the only one to be invoked while debug vote map
@@ -124,7 +124,7 @@ namespace YHoughTransform {
 
   template <typename T, size_t PI_DIV>
   void SHT<T, PI_DIV>::FeedImage(const unsigned char *img,
-                                 array<size_t, 2> &size_wh) {
+                                 const array<size_t, 2> &size_wh) {
     img_ = img;
     img_size_wh_ = size_wh;
     T rho_max = (T)sqrt(pow(size_wh[0]-1,2)+pow(size_wh[1]-1,2));
