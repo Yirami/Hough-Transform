@@ -66,6 +66,7 @@ namespace YHoughTransform {
     inline void FindPeaksS(const list<size_t> &angle_filter,
                            size_t max_lines,
                            vector<HoughLine<T>> &lines);
+    void FindLines(HoughLine<T> &line) const;
     void FindLines(vector<HoughLine<T>> &lines) const;
     inline void Radian2Degree(HoughLine<T> &line) const;
     inline void Radian2Degree(vector<HoughLine<T>> &lines) const;
@@ -228,120 +229,124 @@ namespace YHoughTransform {
   }
 
   template <typename T, size_t PI_DIV>
-  void SHT<T, PI_DIV>::FindLines(vector<HoughLine<T>> &lines) const{
+  void SHT<T, PI_DIV>::FindLines(HoughLine<T> &line) const {
     constexpr int shift = 16;
-    for (auto &line:lines) {
-      const T rho = line.rho;
-      const T theta = Rad2Deg_(line.theta);
-      const T curr_sin = sin(line.theta);
-      const T curr_cos = cos(line.theta);
+    const T rho = line.rho;
+    const T theta = Rad2Deg_(line.theta);
+    const T curr_sin = sin(line.theta);
+    const T curr_cos = cos(line.theta);
 
-      int r_start = 0;
-  		int c_start = (int)floor((rho-(T)r_start*curr_cos)/curr_sin);
-  		// determine whether the c_start overflows the boundary
-  		if (c_start<0) {
-  			c_start = 0;
-  			r_start = (int)floor((rho-(T)c_start*curr_sin)/curr_cos);
-  		}
-  		else if (c_start>=(int)img_size_wh_[0]) {
-  			c_start = (int)img_size_wh_[0]-1;
-  			r_start = (int)floor((rho-(T)c_start*curr_sin)/curr_cos);
-  		}
-  		bool bias_flag = false;
-  		int r0 = r_start, c0 = c_start, dr0, dc0;
-  		if (fabs(theta)>45) {
-  			bias_flag = true;
-  			dr0 = 1;
-  			dc0 = (int)floor(curr_cos*(T)(1 << shift)/fabs(curr_sin)+0.5);
-  			c0 = (c0 << shift)+(1 << (shift-1));
-  		}
-  		else {
-  			dc0 = 1;
-  			dr0 = (int)floor(fabs(curr_sin)*(T)(1 << shift)/curr_cos+0.5);
-  			r0 = (r0 << shift)+(1 << (shift-1));
-  		}
-  		if (theta>0)
-  			dc0 = -dc0;
-  		// walk along the line using fixed-point arithmetics,
-  		// ... stop at the image border
-  		int last_length = 0;
-      Point2D<> line_start = {0}, line_end = {0};
-  		for (int gap=0, c=c0, r=r0, start_p_flag =1; ; c+=dc0, r+=dr0) {
-  			int r1, c1;
-  			if (bias_flag) {
-  				c1 = c >> shift;
-  				r1 = r;
-  			}
-  			else {
-  				c1 = c;
-  				r1 = r >> shift;
-  			}
-  			if (c1<0||c1>=(int)img_size_wh_[0]||r1<0||r1>=(int)img_size_wh_[1]) {
-  				// ensure last_length has been update before exit
+    int r_start = 0;
+    int c_start = (int)floor((rho-(T)r_start*curr_cos)/curr_sin);
+    // determine whether the c_start overflows the boundary
+    if (c_start<0) {
+      c_start = 0;
+      r_start = (int)floor((rho-(T)c_start*curr_sin)/curr_cos);
+    }
+    else if (c_start>=(int)img_size_wh_[0]) {
+      c_start = (int)img_size_wh_[0]-1;
+      r_start = (int)floor((rho-(T)c_start*curr_sin)/curr_cos);
+    }
+    bool bias_flag = false;
+    int r0 = r_start, c0 = c_start, dr0, dc0;
+    if (fabs(theta)>45) {
+      bias_flag = true;
+      dr0 = 1;
+      dc0 = (int)floor(curr_cos*(T)(1 << shift)/fabs(curr_sin)+0.5);
+      c0 = (c0 << shift)+(1 << (shift-1));
+    }
+    else {
+      dc0 = 1;
+      dr0 = (int)floor(fabs(curr_sin)*(T)(1 << shift)/curr_cos+0.5);
+      r0 = (r0 << shift)+(1 << (shift-1));
+    }
+    if (theta>0)
+      dc0 = -dc0;
+    // walk along the line using fixed-point arithmetics,
+    // ... stop at the image border
+    int last_length = 0;
+    Point2D<> line_start = {0}, line_end = {0};
+    for (int gap=0, c=c0, r=r0, start_p_flag =1; ; c+=dc0, r+=dr0) {
+      int r1, c1;
+      if (bias_flag) {
+        c1 = c >> shift;
+        r1 = r;
+      }
+      else {
+        c1 = c;
+        r1 = r >> shift;
+      }
+      if (c1<0||c1>=(int)img_size_wh_[0]||r1<0||r1>=(int)img_size_wh_[1]) {
+        // ensure last_length has been update before exit
+        int this_length = (int)floor(sqrt(
+                                    pow((T)line_start.x-(T)line_end.x,2) +
+                                    pow((T)line_start.y-(T)line_end.y,2)));
+        if (this_length > last_length) {
+          last_length = this_length;
+          line.start_pt.x = line_start.x;
+          line.start_pt.y = line_start.y;
+          line.end_pt.x = line_end.x;
+          line.end_pt.y = line_end.y;
+        }
+        break;
+      }
+      if (img_[r1*img_size_wh_[0]+c1]) {
+        gap = 0;
+        if (start_p_flag) {
+          start_p_flag = 0;
+          line_start.x = c1;
+          line_start.y = r1;
+          line_end.x = c1;
+          line_end.y = r1;
+        }
+        else {
+          line_end.x = c1;
+          line_end.y = r1;
+        }
+      }
+      else if (!start_p_flag) {
+        // fuzzy processing the points beside line
+        int left_p_flag = 0, right_p_flag = 0;
+        if (c1>0 && img_[r1*img_size_wh_[0]+(c1-1)])
+          left_p_flag = 1;
+        if (c1<(int)img_size_wh_[0]-1 && img_[r1*img_size_wh_[0]+(c1+1)])
+          right_p_flag = 1;
+        if (left_p_flag || right_p_flag) {
+          gap = 0;
+          line_end.x = c1;
+          line_end.y = r1;
+          continue;
+        }
+        // end of line segment
+        if (++gap > (int)LINE_GAP) {
+          start_p_flag = 1;
           int this_length = (int)floor(sqrt(
-                                      pow((T)line_start.x-(T)line_end.x,2) +
-                                      pow((T)line_start.y-(T)line_end.y,2)));
-  				if (this_length > last_length) {
+                                    pow((T)line_start.x-(T)line_end.x,2) +
+                                    pow((T)line_start.y-(T)line_end.y,2)));
+          if (this_length > last_length) {
             last_length = this_length;
+            // coordinate transformation
             line.start_pt.x = line_start.x;
             line.start_pt.y = line_start.y;
             line.end_pt.x = line_end.x;
             line.end_pt.y = line_end.y;
-  				}
-  				break;
-  			}
-  			if (img_[r1*img_size_wh_[0]+c1]) {
-  				gap = 0;
-  				if (start_p_flag) {
-  					start_p_flag = 0;
-  					line_start.x = c1;
-  					line_start.y = r1;
-  					line_end.x = c1;
-  					line_end.y = r1;
-  				}
-  				else {
-  					line_end.x = c1;
-  					line_end.y = r1;
-  				}
-  			}
-  			else if (!start_p_flag) {
-  				// fuzzy processing the points beside line
-  				int left_p_flag = 0, right_p_flag = 0;
-  				if (c1>0 && img_[r1*img_size_wh_[0]+(c1-1)])
-  					left_p_flag = 1;
-  				if (c1<(int)img_size_wh_[0]-1 && img_[r1*img_size_wh_[0]+(c1+1)])
-  					right_p_flag = 1;
-  				if (left_p_flag || right_p_flag) {
-  					gap = 0;
-            line_end.x = c1;
-  					line_end.y = r1;
-  					continue;
-  				}
-  				// end of line segment
-  				if (++gap > (int)LINE_GAP) {
-  					start_p_flag = 1;
-  					int this_length = (int)floor(sqrt(
-                                      pow((T)line_start.x-(T)line_end.x,2) +
-                                      pow((T)line_start.y-(T)line_end.y,2)));
-  					if (this_length > last_length) {
-  						last_length = this_length;
-  						// coordinate transformation
-              line.start_pt.x = line_start.x;
-              line.start_pt.y = line_start.y;
-              line.end_pt.x = line_end.x;
-              line.end_pt.y = line_end.y;
-  					}
-  				}
-  			}
-  		}
-  		// enhanced the robustness: none line segment are detected
-  		if (!last_length) {
-  			line.start_pt.x = r_start;
-  			line.start_pt.y = c_start;
-  			line.end_pt.x = r_start;
-  			line.end_pt.y = c_start;
-  		}
+          }
+        }
+      }
     }
+    // enhanced the robustness: none line segment are detected
+    if (!last_length) {
+      line.start_pt.x = r_start;
+      line.start_pt.y = c_start;
+      line.end_pt.x = r_start;
+      line.end_pt.y = c_start;
+    }
+  }
+
+  template <typename T, size_t PI_DIV>
+  void SHT<T, PI_DIV>::FindLines(vector<HoughLine<T>> &lines) const{
+    for (auto &line:lines)
+      FindLines(line);
   }
 
 }
