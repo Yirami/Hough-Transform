@@ -15,7 +15,7 @@
 
 #include <cmath>
 
-#include "./standard_hough_transform.hpp"
+#include "standard_hough_transform.hpp"
 
 namespace YHoughTransform {
 

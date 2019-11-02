@@ -34,8 +34,8 @@
 // include c++ code headers here
 #include <vector>
 #include <array>
-#include "./standard_hough_transform.hpp"
-#include "./directional_coded_hough_transform.hpp"
+#include "standard_hough_transform.hpp"
+#include "directional_coded_hough_transform.hpp"
 
 extern "C" {
 #endif

@@ -19,7 +19,7 @@
 #include <list>
 #include <cstring>
 
-#include "./singleton.hpp"
+#include "singleton.hpp"
 
 namespace YHoughTransform {
   using std::vector;
